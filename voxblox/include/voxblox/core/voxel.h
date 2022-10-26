@@ -18,6 +18,7 @@ struct TsdfVoxel {
   float interesting_weight = 0.0f;
   bool in_queue = false;
   bool is_observed = false;
+  float viewing_dist = std::numeric_limits<float>::max();
 };
 
 struct EsdfVoxel {

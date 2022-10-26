@@ -6,6 +6,8 @@
 #include "voxblox_ros/conversions.h"
 #include "voxblox_ros/ros_params.h"
 #include <chrono>
+#include <iostream>
+#include <fstream>
 
 namespace voxblox {
 
@@ -128,14 +130,14 @@ TsdfServer::TsdfServer(const ros::NodeHandle& nh,
     for (int idx2 = 0; idx2 < kNumVelZ_; idx2++) {
       for (int idx3 = 0; idx3 < kNumYaw_; idx3++) {
         double psi_tmp = 0.0;
-        double forward_vel_tmp = 1.0; // TODO: get current vel x, z
+        double forward_vel_tmp = kForwardVel_; // TODO: get current vel x, z
         double vertical_vel_tmp = 0.0;
         Eigen::Matrix<double, 3, 1> pos_tmp{0.0, 0.0, 0.0};
         
         int idx_seq = idx1 * kNumYaw_ * kNumVelZ_ + idx2 * kNumYaw_ + idx3;
         for (int j = 0; j < kNumTimestep; j++) {
           // create the action at specific timestamp
-          action_sequences_(idx_seq, 3*j) = 1.0; // TODO: should have multiple values
+          action_sequences_(idx_seq, 3*j) = kForwardVel_; // TODO: should have multiple values
           double angle_z = -kVerticalFov_div2 + idx2 * kVerticalFov / (kNumVelZ_ - 1);
           action_sequences_(idx_seq, 3*j + 1) = action_sequences_(idx_seq, 3*j) * tan(angle_z); 
           action_sequences_(idx_seq, 3*j + 2) =
@@ -187,6 +189,8 @@ TsdfServer::TsdfServer(const ros::NodeHandle& nh,
       "calc_info_gain", &TsdfServer::calcInfoGainCallback, this);
   baseline_info_gain_srv_ = nh_private_.advertiseService(
       "baseline_info_gain", &TsdfServer::baselineInfoGainCallback, this);
+  save_viewing_dist_srv_ = nh_private_.advertiseService(
+      "save_viewing_dist", &TsdfServer::saveViewingDistanceCallback, this);      
   generate_mesh_srv_ = nh_private_.advertiseService(
       "generate_mesh", &TsdfServer::generateMeshCallback, this);
   clear_map_srv_ = nh_private_.advertiseService(
@@ -465,6 +469,11 @@ void TsdfServer::processPointCloudMessageAndInsertWithInterestingness(
           // std::cout << "voxel->interestingness:" << voxel->interestingness;
           voxel->in_queue = true;
           interesting_voxel_idx->push(global_index);
+        }
+        // save voxel's viewing distance
+        float dist = sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
+        if (dist < voxel->viewing_dist) {
+          voxel->viewing_dist = dist;
         }
       }
     }
@@ -1468,4 +1477,18 @@ bool TsdfServer::baselineInfoGainCallback(voxblox_msgs::InfoGainBaseline::Reques
   return true;
 }
 
+bool TsdfServer::saveViewingDistanceCallback(
+    std_srvs::Empty::Request& /*request*/,
+    std_srvs::Empty::Response& /*response*/) {
+  std::ofstream viewing_dist_file;
+  viewing_dist_file.open ("/home/huan/viewing_dist.txt", std::ios::trunc); // hard code for now!
+  while (!interesting_voxels->empty()) {
+    voxblox::GlobalIndex global_index = interesting_voxels->front();
+    voxblox::TsdfVoxel* voxel = sdf_layer_->getVoxelPtrByGlobalIndex(global_index);
+    viewing_dist_file << voxel->viewing_dist << " " ;
+    interesting_voxels->pop();
+  }  
+  viewing_dist_file.close();
+  return true;
+}
 }  // namespace voxblox

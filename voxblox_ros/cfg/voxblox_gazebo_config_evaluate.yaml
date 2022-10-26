@@ -41,7 +41,7 @@ use_weight_dropoff: True
 # for decaying interestingness to unknown neighbor voxels
 decay_lambda: 0.9 #0.9 # 0.0 - 1.0
 decay_distance: 3.0 # 0.0: disable
-area_factor: 10000 # exp(-area_factor * z^2 / (fx * fy))
+area_factor: 1000 #10000 # exp(-area_factor * z^2 / (fx * fy))
 # kNumYawStep1: 16
 # kNumYawStep2: 4
 # kNumVelZ: 8 # IGNORED

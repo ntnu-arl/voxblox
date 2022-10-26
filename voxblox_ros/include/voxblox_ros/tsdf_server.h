@@ -58,6 +58,7 @@ constexpr double F_Y = 239.05279541015625;
 constexpr int kNumYaw_ = 32; // kNumYawStep1_ * kNumYawStep2_;
 constexpr int kNumVelZ_ = 8;
 constexpr int kNumVelX_ = 1; 
+constexpr double kForwardVel_ = 0.75;
 constexpr int kSkipStepGenerate = 5;
 constexpr int kNumTimestep = 15;
 constexpr double alpha_v = 0.92; // Ts=0.4, T_sampling=5/(10*15)
@@ -254,6 +255,8 @@ class TsdfServer {
   bool baselineInfoGainCallback(voxblox_msgs::InfoGainBaseline::Request& request,
                                 voxblox_msgs::InfoGainBaseline::Response& response);
 
+  bool saveViewingDistanceCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
+
   void computeVolumetricGainRayModelNoBound(StateVec& state,
                                             VolumetricGain& vgain);
 
@@ -304,6 +307,7 @@ class TsdfServer {
   // Services.
   ros::ServiceServer calc_info_gain_srv_;
   ros::ServiceServer baseline_info_gain_srv_;
+  ros::ServiceServer save_viewing_dist_srv_;
   ros::ServiceServer generate_mesh_srv_;
   ros::ServiceServer clear_map_srv_;
   ros::ServiceServer save_map_srv_;
