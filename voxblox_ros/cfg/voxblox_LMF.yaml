@@ -9,7 +9,7 @@ voxel_carving_enabled: True
 color_mode: "height"
 verbose: False
 
-update_mesh_every_n_sec: 0.0 # markers will not be visualized in rviz, but the tsdf will still work
+update_mesh_every_n_sec: 2.0 # markers will not be visualized in rviz, but the tsdf will still work
 
 # update_map_every_n_sec: 4.0 # unknown
 mesh_min_weight: 0.0001
@@ -18,7 +18,7 @@ method: "fast"
 integration_order_mode: "sorted"
 # max_consecutive_ray_collisions: 2
 # start_voxel_subsampling_factor: 2
-publish_pointclouds: False #True
+publish_pointclouds: True
 publish_pointclouds_on_update: False #True
 allow_clear: True
 pointcloud_queue_size: 5
@@ -32,7 +32,7 @@ enable_icp: False
 icp_refine_roll_pitch: False
 accumulate_icp_corrections: True # check
 timestamp_tolerance_sec: 0.001
-publish_tsdf_map: False
+publish_tsdf_map: True
 
 # OVERLAP BETWEEN VERSIONS #
 use_const_weight: True # check
