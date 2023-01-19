@@ -188,6 +188,19 @@ inline bool visualizeNearSurfaceTsdfVoxels(const TsdfVoxel& voxel,
   return false;
 }
 
+inline bool visualizeNearSurfaceEsdfVoxels(const EsdfVoxel& voxel,
+                                           const Point& /*coord*/,
+                                           double surface_distance,
+                                           Color* color) {
+  CHECK_NOTNULL(color);
+  constexpr float kMinWeight = 0;
+  if (std::abs(voxel.distance) < surface_distance) {
+    *color = voxel.color;
+    return true;
+  }
+  return false;
+}
+
 inline bool visualizeTsdfVoxels(const TsdfVoxel& voxel, const Point& /*coord*/,
                                 Color* color) {
   CHECK_NOTNULL(color);
@@ -322,6 +335,21 @@ inline void createSurfacePointcloudFromTsdfLayer(
   createColorPointcloudFromLayer<TsdfVoxel>(
       layer,
       std::bind(&visualizeNearSurfaceTsdfVoxels, ph::_1, ph::_2,
+                surface_distance, ph::_3),
+      pointcloud);
+}
+
+/**
+ * Create a pointcloud based on the ESDF voxels near the surface.
+ * The RGB color is determined by the color of the ESDF voxel.
+ */
+inline void createSurfacePointcloudFromEsdfLayer(
+    const Layer<EsdfVoxel>& layer, double surface_distance,
+    pcl::PointCloud<pcl::PointXYZRGB>* pointcloud) {
+  CHECK_NOTNULL(pointcloud);
+  createColorPointcloudFromLayer<EsdfVoxel>(
+      layer,
+      std::bind(&visualizeNearSurfaceEsdfVoxels, ph::_1, ph::_2,
                 surface_distance, ph::_3),
       pointcloud);
 }

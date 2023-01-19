@@ -92,7 +92,7 @@ typedef Eigen::Matrix<FloatingPoint, 1, 8> InterpVector;
 typedef Eigen::Array<IndexElement, 3, 8> InterpIndexes;
 
 struct Color {
-  Color() : r(0), g(0), b(0), a(0) {}
+  Color() : r(0), g(0), b(0), a(255) {}
   Color(uint8_t _r, uint8_t _g, uint8_t _b) : Color(_r, _g, _b, 255) {}
   Color(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a)
       : r(_r), g(_g), b(_b), a(_a) {}

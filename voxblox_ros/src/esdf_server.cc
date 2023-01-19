@@ -46,6 +46,8 @@ void EsdfServer::setupRos() {
       "esdf_slice", 1, true);
   traversable_pub_ = nh_private_.advertise<pcl::PointCloud<pcl::PointXYZI> >(
       "traversable", 1, true);
+  esdf_surface_pointcloud_pub_ = nh_private_.advertise<pcl::PointCloud<pcl::PointXYZRGB> >(
+      "esdf_surface_pointcloud", 1, true);
 
   esdf_map_pub_ =
       nh_private_.advertise<voxblox_msgs::Layer>("esdf_map_out", 1, false);
@@ -131,6 +133,19 @@ void EsdfServer::publishPointclouds() {
   }
 
   TsdfServer::publishPointclouds();
+  publishEsdfSurfacePoints();
+}
+
+void EsdfServer::publishEsdfSurfacePoints() {
+  // Create a pointcloud with distance = intensity.
+  pcl::PointCloud<pcl::PointXYZRGB> pointcloud;
+  const float surface_distance_thresh =
+      esdf_map_->getEsdfLayer().voxel_size() * 0.75; // * 0.75
+  createSurfacePointcloudFromEsdfLayer(esdf_map_->getEsdfLayer(),
+                                       surface_distance_thresh, &pointcloud);
+
+  pointcloud.header.frame_id = world_frame_;
+  esdf_surface_pointcloud_pub_.publish(pointcloud);
 }
 
 void EsdfServer::publishTraversable() {
