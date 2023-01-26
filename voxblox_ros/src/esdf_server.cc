@@ -133,7 +133,7 @@ void EsdfServer::publishPointclouds() {
   }
 
   TsdfServer::publishPointclouds();
-  publishEsdfSurfacePoints();
+  // publishEsdfSurfacePoints();
 }
 
 void EsdfServer::publishEsdfSurfacePoints() {
