@@ -46,3 +46,7 @@ area_factor: 1000 #10000 # exp(-area_factor * z^2 / (fx * fy))
 # kNumYawStep2: 4
 # kNumVelZ: 8 # IGNORED
 # kNumVelX: 1
+
+# for evaluating viewing quality
+interestingness_threshold: 0.5 # IGNORED
+interesting_weight_threshold: 15 # IGNORED, stop counting the interestingness when there are more than this observations (only for urban station experiment)

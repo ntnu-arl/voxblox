@@ -172,6 +172,12 @@ TsdfServer::TsdfServer(const ros::NodeHandle& nh,
   std::cout << "area_factor:" << area_factor_ << std::endl;
   area_factor_ = area_factor_ / (F_X * F_Y);
 
+  // param for evaluating viewing quality
+  nh_private.param("interestingness_threshold", interestingness_threshold_, interestingness_threshold_);
+  std::cout << "interestingness_threshold:" << interestingness_threshold_ << std::endl; 
+  nh_private.param("interesting_weight_threshold", interesting_weight_threshold_, interesting_weight_threshold_);
+  std::cout << "interesting_weight_threshold:" << interesting_weight_threshold_ << std::endl;
+
   // nh_private.param("kNumYawStep1", kNumYawStep1_, kNumYawStep1_);
   // std::cout << "kNumYawStep1:" << kNumYawStep1_ << std::endl;
   // nh_private.param("kNumYawStep2", kNumYawStep2_, kNumYawStep2_);
@@ -927,7 +933,7 @@ void TsdfServer::lightProcessPointCloudMessageAndInsert(
               p_tmp, 1.0/voxel_size);
     voxblox::TsdfVoxel* voxel = sdf_layer_->getVoxelPtrByGlobalIndex(global_index);
     if (voxel != nullptr) {
-      if (voxel->interestingness > 0.0) {
+      if (voxel->interestingness > 0.0) { // no threshold interestingness here (for labeling)
         if (!voxel->in_queue) {
           voxel->interesting_distance = 0.0;
           // std::cout << "voxel->interestingness:" << voxel->interestingness;
@@ -1106,6 +1112,9 @@ float TsdfServer::getScanStatus(
       }
       // Occupied
       else {
+        // if (voxel->interesting_weight > interesting_weight_threshold_) { // this voxel is observed enough (only for urban station experiment)
+        //   break;
+        // }
         if (!voxel->is_observed) {
           voxel->is_observed = true;
           observed_voxels->push(global_index);
@@ -1480,14 +1489,23 @@ bool TsdfServer::baselineInfoGainCallback(voxblox_msgs::InfoGainBaseline::Reques
 bool TsdfServer::saveViewingDistanceCallback(
     std_srvs::Empty::Request& /*request*/,
     std_srvs::Empty::Response& /*response*/) {
-  std::ofstream viewing_dist_file;
+  std::ofstream viewing_dist_file, interestingness_file, interestingness_cnt_file;
   viewing_dist_file.open ("/home/huan/viewing_dist.txt", std::ios::trunc); // hard code for now!
+  interestingness_file.open ("/home/huan/interestingness.txt", std::ios::trunc);
+  interestingness_cnt_file.open ("/home/huan/interestingness_cnt.txt", std::ios::trunc);
   while (!interesting_voxels->empty()) {
     voxblox::GlobalIndex global_index = interesting_voxels->front();
     voxblox::TsdfVoxel* voxel = sdf_layer_->getVoxelPtrByGlobalIndex(global_index);
+    // if (voxel->interestingness > interestingness_threshold_) {
+    //   viewing_dist_file << voxel->viewing_dist << " " ;
+    // }
+    interestingness_file << voxel->interestingness << " " ;
+    interestingness_cnt_file << voxel->interesting_weight << " " ;
     viewing_dist_file << voxel->viewing_dist << " " ;
     interesting_voxels->pop();
-  }  
+  }
+  interestingness_file.close();
+  interestingness_cnt_file.close();
   viewing_dist_file.close();
   return true;
 }

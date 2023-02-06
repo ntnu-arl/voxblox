@@ -426,6 +426,10 @@ class TsdfServer {
   double decay_distance_ = 5.0;
   double area_factor_ = 1e5;
 
+  // For evaluating viewing quality
+  double interestingness_threshold_ = 0.0;
+  int interesting_weight_threshold_ = 0;
+
   // action sequence lib 
   // Eigen::Matrix<double, kNumYaw_ * kNumVelZ_ * kNumVelX_, 6 * kNumTimestep> camera_states_;
   // Eigen::Matrix<double, kNumYaw_ * kNumVelZ_ * kNumVelX_, 3 * kNumTimestep> action_sequences_;
