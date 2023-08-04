@@ -65,7 +65,7 @@ Eigen::Vector3i deserializeDirection(const uint32_t data) {
 template <>
 void Block<TsdfVoxel>::deserializeFromIntegers(
     const std::vector<uint32_t>& data) {
-  constexpr size_t kNumDataPacketsPerVoxel = 3u;
+  constexpr size_t kNumDataPacketsPerVoxel = 4u;
   const size_t num_data_packets = data.size();
   CHECK_EQ(num_voxels_ * kNumDataPacketsPerVoxel, num_data_packets);
   for (size_t voxel_idx = 0u, data_idx = 0u;
@@ -74,6 +74,7 @@ void Block<TsdfVoxel>::deserializeFromIntegers(
     const uint32_t bytes_1 = data[data_idx];
     const uint32_t bytes_2 = data[data_idx + 1u];
     const uint32_t bytes_3 = data[data_idx + 2u];
+    const uint32_t bytes_4 = data[data_idx + 3u];
 
     TsdfVoxel& voxel = voxels_[voxel_idx];
 
@@ -81,11 +82,12 @@ void Block<TsdfVoxel>::deserializeFromIntegers(
 
     memcpy(&(voxel.distance), &bytes_1, sizeof(bytes_1));
     memcpy(&(voxel.weight), &bytes_2, sizeof(bytes_2));
+    memcpy(&(voxel.interestingness), &bytes_3, sizeof(bytes_3));
 
-    voxel.color.r = static_cast<uint8_t>(bytes_3 >> 24);
-    voxel.color.g = static_cast<uint8_t>((bytes_3 & 0x00FF0000) >> 16);
-    voxel.color.b = static_cast<uint8_t>((bytes_3 & 0x0000FF00) >> 8);
-    voxel.color.a = static_cast<uint8_t>(bytes_3 & 0x000000FF);
+    voxel.color.r = static_cast<uint8_t>(bytes_4 >> 24);
+    voxel.color.g = static_cast<uint8_t>((bytes_4 & 0x00FF0000) >> 16);
+    voxel.color.b = static_cast<uint8_t>((bytes_4 & 0x0000FF00) >> 8);
+    voxel.color.a = static_cast<uint8_t>(bytes_4 & 0x000000FF);
   }
 }
 
@@ -159,7 +161,7 @@ void Block<IntensityVoxel>::deserializeFromIntegers(
 template <>
 void Block<TsdfVoxel>::serializeToIntegers(std::vector<uint32_t>* data) const {
   CHECK_NOTNULL(data);
-  constexpr size_t kNumDataPacketsPerVoxel = 3u;
+  constexpr size_t kNumDataPacketsPerVoxel = 4u; // add 1 more uint32_t for interestingness
   data->clear();
   data->reserve(num_voxels_ * kNumDataPacketsPerVoxel);
   for (size_t voxel_idx = 0u; voxel_idx < num_voxels_; ++voxel_idx) {
@@ -173,6 +175,10 @@ void Block<TsdfVoxel>::serializeToIntegers(std::vector<uint32_t>* data) const {
     const uint32_t* bytes_2_ptr =
         reinterpret_cast<const uint32_t*>(&voxel.weight);
     data->push_back(*bytes_2_ptr);
+
+    const uint32_t* bytes_3_ptr =
+        reinterpret_cast<const uint32_t*>(&voxel.interestingness);
+    data->push_back(*bytes_3_ptr);    
 
     data->push_back(static_cast<uint32_t>(voxel.color.a) |
                     (static_cast<uint32_t>(voxel.color.b) << 8) |
