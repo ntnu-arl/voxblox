@@ -50,8 +50,8 @@ constexpr double kMaxDetectionRange = 5.0;
 constexpr double kMinDetectionRange = 0.1; // IGNORED
 constexpr double kRaycastingHorizontalRes = 5.0 * M_PI/180.0;
 constexpr double kRaycastingVerticalRes = 5.0 * M_PI/180.0;
-constexpr double F_X = 239.35153198242188;
-constexpr double F_Y = 239.05279541015625;
+constexpr double F_X = 240.9515380859375;
+constexpr double F_Y = 240.9515380859375;
 
 // constexpr int kNumYawStep1_ = 16;
 // constexpr int kNumYawStep2_ = 3; //32;
@@ -62,7 +62,7 @@ constexpr double kForwardVel_ = 0.75;
 constexpr int kSkipStepGenerate = 5;
 constexpr int kNumTimestep = 15;
 constexpr double alpha_v = 0.92; // Ts=0.4, T_sampling=5/(10*15)
-constexpr double alpha_psi = 0.9293; // Ts=1/K_yaw=1/2.2, T_sampling=5/(10*15)
+constexpr double alpha_psi = 0.9418; // Ts=1/K_yaw=1/1.8, T_sampling=5/(10*15)
 
 typedef Eigen::Matrix<double, 6, 1> StateVec;
 
