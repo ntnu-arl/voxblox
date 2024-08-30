@@ -11,6 +11,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <iostream>
 
 #include <glog/logging.h>
 #include <kindr/minimal/quat-transformation.h>
@@ -92,7 +93,7 @@ typedef Eigen::Matrix<FloatingPoint, 1, 8> InterpVector;
 typedef Eigen::Array<IndexElement, 3, 8> InterpIndexes;
 
 struct Color {
-  Color() : r(0), g(0), b(0), a(255) {}
+  Color() : r(255), g(255), b(255), a(255) {}
   Color(uint8_t _r, uint8_t _g, uint8_t _b) : Color(_r, _g, _b, 255) {}
   Color(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a)
       : r(_r), g(_g), b(_b), a(_a) {}
@@ -112,6 +113,15 @@ struct Color {
     second_weight /= total_weight;
 
     Color new_color;
+    if ((first_color.r == 0 && first_color.g == 255 && first_color.b==0) || (second_color.r == 0 && second_color.g == 255 && second_color.b==0))
+    {
+      new_color.r = 0;
+      new_color.g = 255;
+      new_color.b = 0;
+      new_color.a = 255;
+      std::cout<< "blending two colours and making them green" << std::endl;
+      return new_color;
+    }
     new_color.r = static_cast<uint8_t>(
         round(first_color.r * first_weight + second_color.r * second_weight));
     new_color.g = static_cast<uint8_t>(
@@ -120,6 +130,8 @@ struct Color {
         round(first_color.b * first_weight + second_color.b * second_weight));
     new_color.a = static_cast<uint8_t>(
         round(first_color.a * first_weight + second_color.a * second_weight));
+
+    std::cout<< "blending two colours" << std::endl;
 
     return new_color;
   }

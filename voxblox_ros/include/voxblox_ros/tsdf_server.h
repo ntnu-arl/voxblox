@@ -29,6 +29,7 @@
 #include "voxblox_ros/ptcloud_vis.h"
 #include "voxblox_ros/transformer.h"
 
+#include <pupil_scripts/fixation3D.h>
 namespace voxblox {
 
 constexpr float kDefaultMaxIntensity = 100.0;
@@ -117,6 +118,10 @@ class TsdfServer {
   /// Overwrites the layer with what's coming from the topic!
   void tsdfMapCallback(const voxblox_msgs::Layer& layer_msg);
 
+
+  /// callback for the fixation
+  void fixationCallback (const pupil_scripts::fixation3D & fixation_msg);
+
  protected:
   /**
    * Gets the next pointcloud that has an available transform to process from
@@ -146,6 +151,10 @@ class TsdfServer {
 
   /// Subscriber to subscribe to another node generating the map.
   ros::Subscriber tsdf_map_sub_;
+
+
+  /// Subscriber to fixation messages
+  ros::Subscriber fixation_sub_;
 
   // Services.
   ros::ServiceServer generate_mesh_srv_;
@@ -252,6 +261,8 @@ class TsdfServer {
    */
   std::queue<sensor_msgs::PointCloud2::Ptr> pointcloud_queue_;
   std::queue<sensor_msgs::PointCloud2::Ptr> freespace_pointcloud_queue_;
+
+  std::queue<Point> fixations_voxels_queue_;
 
   // Last message times for throttling input.
   ros::Time last_msg_time_ptcloud_;

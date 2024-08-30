@@ -86,6 +86,10 @@ TsdfServer::TsdfServer(const ros::NodeHandle& nh,
                       pose_corrected_frame_);
   }
 
+
+  // subscribing to fixation messages
+  fixation_sub_ = nh_.subscribe("/fixation3D", 1, &TsdfServer::fixationCallback, this);
+
   // Initialize TSDF Map and integrator.
   tsdf_map_.reset(new TsdfMap(config));
 
@@ -657,6 +661,39 @@ void TsdfServer::tsdfMapCallback(const voxblox_msgs::Layer& layer_msg) {
     if (publish_pointclouds_on_update_) {
       publishPointclouds();
     }
+  }
+}
+
+void TsdfServer::fixationCallback(const pupil_scripts::fixation3D & fixation3d_msg){
+  double voxel_size_inv = 1/tsdf_map_->getTsdfLayer().voxel_size();
+  std::cout<< "inverse of voxel size = "<< voxel_size_inv<< std::endl;
+  Point voxel_coordi = Point(fixation3d_msg.p.point.x, fixation3d_msg.p.point.y, fixation3d_msg.p.point.z);
+  fixations_voxels_queue_.push(voxel_coordi);
+  std::queue<Point> temp_fixations_voxels_queue_;
+  while(!fixations_voxels_queue_.empty())
+  {
+     Point voxel_coordi1 = fixations_voxels_queue_.front();
+     LongIndex center_voxel_index = getGridIndexFromPoint<LongIndex>(voxel_coordi1.cast<FloatingPoint>(), voxel_size_inv);
+     TsdfVoxel* voxel = tsdf_map_->getTsdfLayerPtr()->getVoxelPtrByGlobalIndex(center_voxel_index);
+    if (voxel != nullptr)
+    // if (!(voxel == nullptr || voxel->weight < 1e-6))
+      {
+        voxel->fixation_duration = fixation3d_msg.duration_ms;
+        voxel->fixation_id = fixation3d_msg.fixation_id;
+        voxel->color = Color(0,255,0);
+        std::cout<< "Fixation id of voxel with index: "<< center_voxel_index.x()<< " , "<< center_voxel_index.y()<< " , "<<center_voxel_index.z()<< "  = "<<voxel->fixation_id<< " "<<std::endl;
+      }
+    else
+      {
+        temp_fixations_voxels_queue_.push(voxel_coordi1);
+      }
+      fixations_voxels_queue_.pop();
+  }
+  while(!temp_fixations_voxels_queue_.empty())
+  {
+     Point voxel_coordi2 = temp_fixations_voxels_queue_.front();
+     fixations_voxels_queue_.push(voxel_coordi2);
+     temp_fixations_voxels_queue_.pop();
   }
 }
 

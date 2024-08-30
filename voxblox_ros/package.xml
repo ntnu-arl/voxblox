@@ -25,4 +25,5 @@
   <depend>tf</depend>
   <depend>voxblox</depend>
   <depend>voxblox_msgs</depend>
+  <depend>pupil_scripts</depend>
 </package>

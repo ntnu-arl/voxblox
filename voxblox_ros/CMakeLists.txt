@@ -4,6 +4,8 @@ project(voxblox_ros)
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
+find_package(pupil_scripts REQUIRED)
+
 add_definitions(-std=c++14 -Wall -Wextra)
 
 #############
