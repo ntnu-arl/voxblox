@@ -14,6 +14,7 @@
 #include <memory>
 #include <queue>
 #include <string>
+#include <planner_msgs/KeyRecPointCloud.h>
 
 #include <voxblox/alignment/icp.h>
 #include <voxblox/core/tsdf_map.h>
@@ -47,6 +48,7 @@ class TsdfServer {
   void getServerConfigFromRosParam(const ros::NodeHandle& nh_private);
 
   void insertPointcloud(const sensor_msgs::PointCloud2::Ptr& pointcloud);
+  void recPointcloud(const planner_msgs::KeyRecPointCloud& msg);
 
   void insertFreespacePointcloud(
       const sensor_msgs::PointCloud2::Ptr& pointcloud);
@@ -131,6 +133,7 @@ class TsdfServer {
 
   /// Data subscribers.
   ros::Subscriber pointcloud_sub_;
+  ros::Subscriber rec_pointcloud_sub_;
   ros::Subscriber freespace_pointcloud_sub_;
 
   /// Publish markers for visualization.

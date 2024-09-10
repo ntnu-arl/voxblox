@@ -25,4 +25,5 @@
   <depend>tf</depend>
   <depend>voxblox</depend>
   <depend>voxblox_msgs</depend>
+  <depend>planner_msgs</depend> 
 </package>

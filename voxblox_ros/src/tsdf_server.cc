@@ -59,6 +59,9 @@ TsdfServer::TsdfServer(const ros::NodeHandle& nh,
   pointcloud_sub_ = nh_.subscribe("pointcloud", pointcloud_queue_size_,
                                   &TsdfServer::insertPointcloud, this);
 
+  rec_pointcloud_sub_ = nh_.subscribe("rec_point_cloud", pointcloud_queue_size_,
+                                  &TsdfServer::recPointcloud, this);
+
   mesh_pub_ = nh_private_.advertise<voxblox_msgs::Mesh>("mesh", 1, true);
 
   // Publishing/subscribing to a layer from another node (when using this as
@@ -387,6 +390,33 @@ void TsdfServer::insertPointcloud(
     ROS_INFO_STREAM(
         "Layer memory: " << tsdf_map_->getTsdfLayer().getMemorySize());
   }
+}
+
+void TsdfServer::recPointcloud(const planner_msgs::KeyRecPointCloud& key_rec_pcl_msg_in) {
+
+  // Define the transformation type
+  typedef kindr::minimal::QuatTransformationTemplate<float> Transformation;
+  typedef kindr::minimal::RotationQuaternionTemplate<float> RotationQuaternion;
+  typedef kindr::minimal::PositionTemplate<float> Position;
+
+  // Extract position from Pose message
+  Position position(static_cast<float>(key_rec_pcl_msg_in.pose.position.x),
+                    static_cast<float>(key_rec_pcl_msg_in.pose.position.y),
+                    static_cast<float>(key_rec_pcl_msg_in.pose.position.z));
+
+  // Extract orientation (quaternion) from Pose message
+  RotationQuaternion rotation(static_cast<float>(key_rec_pcl_msg_in.pose.orientation.w),
+                              static_cast<float>(key_rec_pcl_msg_in.pose.orientation.x),
+                              static_cast<float>(key_rec_pcl_msg_in.pose.orientation.y),
+                              static_cast<float>(key_rec_pcl_msg_in.pose.orientation.z));
+
+  // Create QuatTransformation object
+  const Transformation T_G_C = Transformation(rotation, position);
+
+  sensor_msgs::PointCloud2::Ptr point_cloud_ptr(new sensor_msgs::PointCloud2(key_rec_pcl_msg_in.point_cloud));
+
+  processPointCloudMessageAndInsert(point_cloud_ptr, T_G_C, false);
+
 }
 
 void TsdfServer::insertFreespacePointcloud(
