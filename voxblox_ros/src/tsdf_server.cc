@@ -61,6 +61,7 @@ TsdfServer::TsdfServer(const ros::NodeHandle& nh,
 
   rec_pointcloud_sub_ = nh_.subscribe("rec_point_cloud", pointcloud_queue_size_,
                                   &TsdfServer::recPointcloud, this);
+  received_rec_pcl_pub_ = nh_private_.advertise<sensor_msgs::PointCloud2>("received_rec_pcl", 1, true);
 
   mesh_pub_ = nh_private_.advertise<voxblox_msgs::Mesh>("mesh", 1, true);
 
@@ -310,7 +311,12 @@ void TsdfServer::processPointCloudMessageAndInsert(
   }
 
   ros::WallTime start = ros::WallTime::now();
-  integratePointcloud(T_G_C_refined, points_C, colors, is_freespace_pointcloud);
+  
+  // Create a color array with all white colors in one step
+  size_t num_points = points_C.size();
+  AlignedVector<Color> white_color(num_points, Color(255, 255, 255));
+
+  integratePointcloud(T_G_C_refined, points_C, white_color, is_freespace_pointcloud);
   ros::WallTime end = ros::WallTime::now();
   if (verbose_) {
     ROS_INFO("Finished integrating in %f seconds, have %lu blocks.",
@@ -327,6 +333,11 @@ void TsdfServer::processPointCloudMessageAndInsert(
 
   // Callback for inheriting classes.
   newPoseCallback(T_G_C);
+
+  // sensor_msgs::PointCloud2 pcl_msg;
+  // pcl_msg.header.frame_id = world_frame_;
+  // pcl_msg.data.push_back(points_C);
+  // received_rec_pcl_pub_.publish(pcl_msg);
 }
 
 // Checks if we can get the next message from queue.

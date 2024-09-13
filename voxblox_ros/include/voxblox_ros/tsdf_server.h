@@ -137,6 +137,7 @@ class TsdfServer {
   ros::Subscriber freespace_pointcloud_sub_;
 
   /// Publish markers for visualization.
+  ros::Publisher received_rec_pcl_pub_;
   ros::Publisher mesh_pub_;
   ros::Publisher tsdf_pointcloud_pub_;
   ros::Publisher surface_pointcloud_pub_;
