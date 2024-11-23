@@ -59,7 +59,7 @@ TsdfServer::TsdfServer(const ros::NodeHandle& nh,
   pointcloud_sub_ = nh_.subscribe("pointcloud", pointcloud_queue_size_,
                                   &TsdfServer::insertPointcloud, this);
 
-  rec_pointcloud_sub_ = nh_.subscribe("rec_point_cloud", pointcloud_queue_size_,
+  rec_pointcloud_sub_ = nh_.subscribe("output_key_rec_point_cloud", pointcloud_queue_size_,
                                   &TsdfServer::recPointcloud, this);
   received_rec_pcl_pub_ = nh_private_.advertise<sensor_msgs::PointCloud2>("received_rec_pcl", 1, true);
 
