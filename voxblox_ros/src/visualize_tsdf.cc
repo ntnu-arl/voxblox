@@ -1,6 +1,5 @@
 #include <string>
 
-#include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <pcl/conversions.h>
 #include <pcl/io/ply_io.h>

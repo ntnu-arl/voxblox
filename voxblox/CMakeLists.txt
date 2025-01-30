@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(voxblox)
 
 find_package(catkin_simple REQUIRED)
+find_package(Eigen3 REQUIRED)
 catkin_simple()
 
 set(CMAKE_MACOSX_RPATH 0)
@@ -75,7 +76,7 @@ set_target_properties(${PROJECT_NAME}_proto PROPERTIES PUBLIC_HEADER "${PROTO_HD
 # We need the binary folder in the include directories so we can find the proto
 # headers within this library and all dependent packages.
 target_include_directories(${PROJECT_NAME}_proto
-                           PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+                           PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${EIGEN3_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME}_proto ${PROTO_LIBRARIES})
 
 cs_add_library(${PROJECT_NAME}
