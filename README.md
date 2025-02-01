@@ -20,12 +20,39 @@ Voxblox is a volumetric mapping library based mainly on Truncated Signed Distanc
 # Documentation
 * All voxblox documentation can be found on [our readthedocs page](https://voxblox.readthedocs.io/en/latest/index.html)
 
+## Installation
+Install dependencies:
+``` bash
+sudo apt-get install python-wstool python-catkin-tools ros-kinetic-cmake-modules protobuf-compiler autoconf
+```
+Setup catkin workspace
+```bash
+mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws
+catkin init
+catkin config --extend /opt/ros/kinetic
+catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
+```
+
+Clone all packages
+```bash
+cd ~/catkin_ws/src/
+git clone git@github.com:ntnu-arl/voxblox.git -b dev/ros2_prep
+wstool init . ./voxblox/voxblox_ssh.rosinstall
+wstool update
+```
+
+Build voxblox
+```bash
+cd ~/catkin_ws/
+catkin build voxblox_ros
+```
+
 ## Table of Contents
 * [Paper and Video](#paper-and-video)
 * [Credits](#credits)
 * [Example Outputs](https://voxblox.readthedocs.io/en/latest/pages/Example-Outputs.html)
 * [Performance](https://voxblox.readthedocs.io/en/latest/pages/Performance.html)
-* [Installation](https://voxblox.readthedocs.io/en/latest/pages/Installation.html)
 * [Running Voxblox](https://voxblox.readthedocs.io/en/latest/pages/Running-Voxblox.html)
 * [Using Voxblox for Planning](https://voxblox.readthedocs.io/en/latest/pages/Using-Voxblox-for-Planning.html)
 * [Transformations in Voxblox](https://voxblox.readthedocs.io/en/latest/pages/Transformations.html)
