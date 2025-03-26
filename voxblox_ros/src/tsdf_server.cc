@@ -405,28 +405,31 @@ void TsdfServer::insertPointcloud(
 
 void TsdfServer::recPointcloud(const planner_msgs::KeyRecPointCloud& key_rec_pcl_msg_in) {
 
-  // Define the transformation type
-  typedef kindr::minimal::QuatTransformationTemplate<float> Transformation;
-  typedef kindr::minimal::RotationQuaternionTemplate<float> RotationQuaternion;
-  typedef kindr::minimal::PositionTemplate<float> Position;
+  for(int i=0; i<key_rec_pcl_msg_in.point_cloud.size(); i++){
+    // Define the transformation type
+    typedef kindr::minimal::QuatTransformationTemplate<float> Transformation;
+    typedef kindr::minimal::RotationQuaternionTemplate<float> RotationQuaternion;
+    typedef kindr::minimal::PositionTemplate<float> Position;
 
-  // Extract position from Pose message
-  Position position(static_cast<float>(key_rec_pcl_msg_in.pose.position.x),
-                    static_cast<float>(key_rec_pcl_msg_in.pose.position.y),
-                    static_cast<float>(key_rec_pcl_msg_in.pose.position.z));
+    // Extract position from Pose message
+    Position position(static_cast<float>(key_rec_pcl_msg_in.pose[i].position.x),
+                      static_cast<float>(key_rec_pcl_msg_in.pose[i].position.y),
+                      static_cast<float>(key_rec_pcl_msg_in.pose[i].position.z));
 
-  // Extract orientation (quaternion) from Pose message
-  RotationQuaternion rotation(static_cast<float>(key_rec_pcl_msg_in.pose.orientation.w),
-                              static_cast<float>(key_rec_pcl_msg_in.pose.orientation.x),
-                              static_cast<float>(key_rec_pcl_msg_in.pose.orientation.y),
-                              static_cast<float>(key_rec_pcl_msg_in.pose.orientation.z));
+    // Extract orientation (quaternion) from Pose message
+    RotationQuaternion rotation(static_cast<float>(key_rec_pcl_msg_in.pose[i].orientation.w),
+                                static_cast<float>(key_rec_pcl_msg_in.pose[i].orientation.x),
+                                static_cast<float>(key_rec_pcl_msg_in.pose[i].orientation.y),
+                                static_cast<float>(key_rec_pcl_msg_in.pose[i].orientation.z));
 
-  // Create QuatTransformation object
-  const Transformation T_G_C = Transformation(rotation, position);
+    // Create QuatTransformation object
+    const Transformation T_G_C = Transformation(rotation, position);
 
-  sensor_msgs::PointCloud2::Ptr point_cloud_ptr(new sensor_msgs::PointCloud2(key_rec_pcl_msg_in.point_cloud));
+    sensor_msgs::PointCloud2::Ptr point_cloud_ptr(new sensor_msgs::PointCloud2(key_rec_pcl_msg_in.point_cloud[i]));
 
-  processPointCloudMessageAndInsert(point_cloud_ptr, T_G_C, false);
+    processPointCloudMessageAndInsert(point_cloud_ptr, T_G_C, false);
+  }
+ 
 
 }
 
