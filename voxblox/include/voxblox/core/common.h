@@ -13,8 +13,10 @@
 #include <vector>
 
 #include <glog/logging.h>
-#include <kindr/minimal/quat-transformation.h>
 #include <Eigen/Core>
+#include <Eigen/Geometry>
+// #include <minkindr/quat-transformation.h>
+#include <kindr/minimal/quat-transformation.h>
 
 namespace voxblox {
 
@@ -38,7 +40,7 @@ inline std::shared_ptr<Type> aligned_shared(Arguments&&... arguments) {
 }
 
 // Types.
-typedef float FloatingPoint;
+typedef double FloatingPoint;
 typedef int IndexElement;
 typedef int64_t LongIndexElement;
 
@@ -73,12 +75,12 @@ typedef AlignedVector<VertexIndex> VertexIndexList;
 typedef Eigen::Matrix<FloatingPoint, 3, 3> Triangle;
 typedef AlignedVector<Triangle> TriangleVector;
 
-// Transformation type for defining sensor orientation.
+// Transformation typedefs.
 typedef kindr::minimal::QuatTransformationTemplate<FloatingPoint>
     Transformation;
 typedef kindr::minimal::RotationQuaternionTemplate<FloatingPoint> Rotation;
 typedef kindr::minimal::RotationQuaternionTemplate<
-    FloatingPoint>::Implementation Quaternion;
+    FloatingPoint>::Implementation RotationImplementation;
 
 // For alignment of layers / point clouds
 typedef Eigen::Matrix<FloatingPoint, 3, Eigen::Dynamic> PointsMatrix;

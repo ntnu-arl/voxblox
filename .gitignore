@@ -54,3 +54,5 @@ docs/doxyoutput
 docs/api
 
 .vscode
+
+voxblox_ros/include/voxblox_ros/ref/
