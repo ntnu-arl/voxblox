@@ -1,11 +1,11 @@
 #ifndef VOXBLOX_ROS_TRANSFORMER_H_
 #define VOXBLOX_ROS_TRANSFORMER_H_
 
-#include <geometry_msgs/TransformStamped.h>
-#include <tf/transform_listener.h>
 #include <string>
 
 #include <voxblox/core/common.h>
+
+#include <voxblox_ros/ros_interface.hpp>
 
 namespace voxblox {
 
@@ -17,24 +17,24 @@ class Transformer {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  Transformer(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
+  Transformer(NodeHandle& nh, NodeHandle& nh_private);
 
   bool lookupTransform(const std::string& from_frame,
-                       const std::string& to_frame, const ros::Time& timestamp,
+                       const std::string& to_frame, const Time& timestamp,
                        Transformation* transform);
 
-  void transformCallback(const geometry_msgs::TransformStamped& transform_msg);
+  void transformCallback(TransformStampedMsg::ConstSharedPtr transform_msg);
 
  private:
   bool lookupTransformTf(const std::string& from_frame,
                          const std::string& to_frame,
-                         const ros::Time& timestamp, Transformation* transform);
+                         const Time& timestamp, Transformation* transform);
 
-  bool lookupTransformQueue(const ros::Time& timestamp,
+  bool lookupTransformQueue(const Time& timestamp,
                             Transformation* transform);
 
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_private_;
+  NodeHandle nh_;
+  NodeHandle nh_private_;
 
   /**
    * Global/map coordinate frame. Will always look up TF transforms to this
@@ -69,13 +69,14 @@ class Transformer {
    * To be replaced (at least optionally) with odometry + static transform
    * from IMU to visual frame.
    */
-  tf::TransformListener tf_listener_;
+  std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 
   // l Only used if use_tf_transforms_ set to false.
-  ros::Subscriber transform_sub_;
+  Subscriber<TransformStampedMsg> transform_sub_;
 
   // l Transform queue, used only when use_tf_transforms is false.
-  AlignedDeque<geometry_msgs::TransformStamped> transform_queue_;
+  AlignedDeque<TransformStampedMsg> transform_queue_;
 };
 
 }  // namespace voxblox

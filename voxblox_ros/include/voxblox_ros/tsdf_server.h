@@ -5,12 +5,6 @@
 #include <pcl/filters/filter.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/point_cloud.h>
-#include <ros/ros.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <std_srvs/Empty.h>
-#include <tf/transform_broadcaster.h>
-#include <visualization_msgs/MarkerArray.h>
 #include <memory>
 #include <queue>
 #include <string>
@@ -22,12 +16,11 @@
 #include <voxblox/io/mesh_ply.h>
 #include <voxblox/mesh/mesh_integrator.h>
 #include <voxblox/utils/color_maps.h>
-#include <voxblox_msgs/FilePath.h>
-#include <voxblox_msgs/Mesh.h>
 
 #include "voxblox_ros/mesh_vis.h"
 #include "voxblox_ros/ptcloud_vis.h"
 #include "voxblox_ros/transformer.h"
+#include "voxblox_ros/ros_interface.hpp"
 
 namespace voxblox {
 
@@ -37,22 +30,22 @@ class TsdfServer {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  TsdfServer(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
-  TsdfServer(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private,
+  TsdfServer(NodeHandle& nh, NodeHandle& nh_private);
+  TsdfServer(NodeHandle& nh, NodeHandle& nh_private,
              const TsdfMap::Config& config,
              const TsdfIntegratorBase::Config& integrator_config,
              const MeshIntegratorConfig& mesh_config);
   virtual ~TsdfServer() {}
 
-  void getServerConfigFromRosParam(const ros::NodeHandle& nh_private);
+  void getServerConfigFromRosParam(NodeHandle& nh_private);
 
-  void insertPointcloud(const sensor_msgs::PointCloud2::Ptr& pointcloud);
+  void insertPointcloud(const PointCloud2Msg::ConstSharedPtr& pointcloud);
 
   void insertFreespacePointcloud(
-      const sensor_msgs::PointCloud2::Ptr& pointcloud);
+      PointCloud2Msg::ConstSharedPtr pointcloud);
 
   virtual void processPointCloudMessageAndInsert(
-      const sensor_msgs::PointCloud2::Ptr& pointcloud_msg,
+      const PointCloud2Msg::ConstSharedPtr& pointcloud_msg,
       const Transformation& T_G_C, const bool is_freespace_pointcloud);
 
   void integratePointcloud(const Transformation& T_G_C,
@@ -78,22 +71,22 @@ class TsdfServer {
   virtual bool saveMap(const std::string& file_path);
   virtual bool loadMap(const std::string& file_path);
 
-  bool clearMapCallback(std_srvs::Empty::Request& request,           // NOLINT
-                        std_srvs::Empty::Response& response);        // NOLINT
-  bool saveMapCallback(voxblox_msgs::FilePath::Request& request,     // NOLINT
-                       voxblox_msgs::FilePath::Response& response);  // NOLINT
-  bool loadMapCallback(voxblox_msgs::FilePath::Request& request,     // NOLINT
-                       voxblox_msgs::FilePath::Response& response);  // NOLINT
-  bool generateMeshCallback(std_srvs::Empty::Request& request,       // NOLINT
-                            std_srvs::Empty::Response& response);    // NOLINT
+  bool clearMapCallback(EmptySrv::Request::SharedPtr request,           // NOLINT
+                        EmptySrv::Response::SharedPtr response);        // NOLINT
+  bool saveMapCallback(FilePathSrv::Request::SharedPtr request,     // NOLINT
+                       FilePathSrv::Response::SharedPtr response);  // NOLINT
+  bool loadMapCallback(FilePathSrv::Request::SharedPtr request,     // NOLINT
+                       FilePathSrv::Response::SharedPtr response);  // NOLINT
+  bool generateMeshCallback(EmptySrv::Request::SharedPtr request,       // NOLINT
+                            EmptySrv::Response::SharedPtr response);    // NOLINT
   bool publishPointcloudsCallback(
-      std_srvs::Empty::Request& request,                             // NOLINT
-      std_srvs::Empty::Response& response);                          // NOLINT
-  bool publishTsdfMapCallback(std_srvs::Empty::Request& request,     // NOLINT
-                              std_srvs::Empty::Response& response);  // NOLINT
+      EmptySrv::Request::SharedPtr request,                             // NOLINT
+      EmptySrv::Response::SharedPtr response);                          // NOLINT
+  bool publishTsdfMapCallback(EmptySrv::Request::SharedPtr request,     // NOLINT
+                              EmptySrv::Response::SharedPtr response);  // NOLINT
 
-  void updateMeshEvent(const ros::TimerEvent& event);
-  void publishMapEvent(const ros::TimerEvent& event);
+  void updateMeshEvent();
+  void publishMapEvent();
 
   std::shared_ptr<TsdfMap> getTsdfMapPtr() { return tsdf_map_; }
 
@@ -115,7 +108,7 @@ class TsdfServer {
   virtual void clear();
 
   /// Overwrites the layer with what's coming from the topic!
-  void tsdfMapCallback(const voxblox_msgs::Layer& layer_msg);
+  void tsdfMapCallback(LayerMsg::ConstSharedPtr layer_msg);
 
  protected:
   /**
@@ -123,44 +116,44 @@ class TsdfServer {
    * the queue.
    */
   bool getNextPointcloudFromQueue(
-      std::queue<sensor_msgs::PointCloud2::Ptr>* queue,
-      sensor_msgs::PointCloud2::Ptr* pointcloud_msg, Transformation* T_G_C);
+      std::queue<PointCloud2Msg::ConstSharedPtr>* queue,
+      PointCloud2Msg::ConstSharedPtr* pointcloud_msg, Transformation* T_G_C);
 
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_private_;
+  NodeHandle& nh_;
+  NodeHandle& nh_private_;
 
   /// Data subscribers.
-  ros::Subscriber pointcloud_sub_;
-  ros::Subscriber freespace_pointcloud_sub_;
+  Subscriber<PointCloud2Msg> pointcloud_sub_;
+  Subscriber<PointCloud2Msg> freespace_pointcloud_sub_;
 
   /// Publish markers for visualization.
-  ros::Publisher mesh_pub_;
-  ros::Publisher tsdf_pointcloud_pub_;
-  ros::Publisher surface_pointcloud_pub_;
-  ros::Publisher tsdf_slice_pub_;
-  ros::Publisher occupancy_marker_pub_;
-  ros::Publisher icp_transform_pub_;
+  Publisher<MeshMsg> mesh_pub_;
+  Publisher<PointCloud2Msg> tsdf_pointcloud_pub_;
+  Publisher<PointCloud2Msg> surface_pointcloud_pub_;
+  Publisher<PointCloud2Msg> tsdf_slice_pub_;
+  Publisher<MarkerArrayMsg> occupancy_marker_pub_;
+  Publisher<TransformStampedMsg> icp_transform_pub_;
 
   /// Publish the complete map for other nodes to consume.
-  ros::Publisher tsdf_map_pub_;
+  Publisher<LayerMsg> tsdf_map_pub_;
 
   /// Subscriber to subscribe to another node generating the map.
-  ros::Subscriber tsdf_map_sub_;
+  Subscriber<LayerMsg> tsdf_map_sub_;
 
   // Services.
-  ros::ServiceServer generate_mesh_srv_;
-  ros::ServiceServer clear_map_srv_;
-  ros::ServiceServer save_map_srv_;
-  ros::ServiceServer load_map_srv_;
-  ros::ServiceServer publish_pointclouds_srv_;
-  ros::ServiceServer publish_tsdf_map_srv_;
+  Service<EmptySrv> generate_mesh_srv_;
+  Service<EmptySrv> clear_map_srv_;
+  Service<FilePathSrv> save_map_srv_;
+  Service<FilePathSrv> load_map_srv_;
+  Service<EmptySrv> publish_pointclouds_srv_;
+  Service<EmptySrv> publish_tsdf_map_srv_;
 
   /// Tools for broadcasting TFs.
-  tf::TransformBroadcaster tf_broadcaster_;
+  TransformBroadcaster tf_broadcaster_;
 
   // Timers.
-  ros::Timer update_mesh_timer_;
-  ros::Timer publish_map_timer_;
+  TimerBase update_mesh_timer_;
+  TimerBase publish_map_timer_;
 
   bool verbose_;
 
@@ -198,7 +191,7 @@ class TsdfServer {
   std::shared_ptr<ColorMap> color_map_;
 
   /// Will throttle to this message rate.
-  ros::Duration min_time_between_msgs_;
+  Duration min_time_between_msgs_;
 
   /// What output information to publish
   bool publish_pointclouds_on_update_;
@@ -239,7 +232,7 @@ class TsdfServer {
   std::shared_ptr<MeshLayer> mesh_layer_;
   std::unique_ptr<MeshIntegrator<TsdfVoxel>> mesh_integrator_;
   /// Optionally cached mesh message.
-  voxblox_msgs::Mesh cached_mesh_msg_;
+  MeshMsg cached_mesh_msg_;
 
   /**
    * Transformer object to keep track of either TF transforms or messages from
@@ -250,12 +243,12 @@ class TsdfServer {
    * Queue of incoming pointclouds, in case the transforms can't be immediately
    * resolved.
    */
-  std::queue<sensor_msgs::PointCloud2::Ptr> pointcloud_queue_;
-  std::queue<sensor_msgs::PointCloud2::Ptr> freespace_pointcloud_queue_;
+  std::queue<PointCloud2Msg::ConstSharedPtr> pointcloud_queue_;
+  std::queue<PointCloud2Msg::ConstSharedPtr> freespace_pointcloud_queue_;
 
   // Last message times for throttling input.
-  ros::Time last_msg_time_ptcloud_;
-  ros::Time last_msg_time_freespace_ptcloud_;
+  Time last_msg_time_ptcloud_;
+  Time last_msg_time_freespace_ptcloud_;
 
   /// Current transform corrections from ICP.
   Transformation icp_corrected_transform_;

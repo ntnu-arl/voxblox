@@ -24,8 +24,8 @@
 #ifndef VOXBLOX_ROS_MESH_VIS_H_
 #define VOXBLOX_ROS_MESH_VIS_H_
 
-#include <eigen_conversions/eigen_msg.h>
-#include <visualization_msgs/Marker.h>
+// #include <eigen_conversions/eigen_msg.h>
+// #include <visualization_msgs/Marker.h>
 #include <algorithm>
 #include <limits>
 
@@ -34,9 +34,10 @@
 #include <voxblox/integrator/tsdf_integrator.h>
 #include <voxblox/mesh/mesh.h>
 #include <voxblox/mesh/mesh_layer.h>
-#include <voxblox_msgs/Mesh.h>
 
 #include "voxblox_ros/conversions.h"
+
+#include "voxblox_ros/ros_interface.hpp"
 
 namespace voxblox {
 
@@ -76,7 +77,7 @@ inline Point lambertShading(const Point& normal, const Point& light,
 
 inline void lambertColorFromColorAndNormal(const Color& color,
                                            const Point& normal,
-                                           std_msgs::ColorRGBA* color_msg) {
+                                           ColorRGBAMsg* color_msg) {
   // These are just some arbitrary light directions, I believe taken from
   // OpenChisel.
   const Point light_dir = Point(0.8f, -0.2f, 0.7f).normalized();
@@ -94,12 +95,12 @@ inline void lambertColorFromColorAndNormal(const Color& color,
 }
 
 inline void lambertColorFromNormal(const Point& normal,
-                                   std_msgs::ColorRGBA* color_msg) {
+                                   ColorRGBAMsg* color_msg) {
   lambertColorFromColorAndNormal(Color(127, 127, 127), normal, color_msg);
 }
 
 inline void normalColorFromNormal(const Point& normal,
-                                  std_msgs::ColorRGBA* color_msg) {
+                                  ColorRGBAMsg* color_msg) {
   // Normals should be in the scale -1 to 1, so we need to shift them to
   // 0 -> 1 range.
   color_msg->r = normal.x() * 0.5 + 0.5;
@@ -109,7 +110,7 @@ inline void normalColorFromNormal(const Point& normal,
 }
 
 inline void heightColorFromVertex(const Point& vertex,
-                                  std_msgs::ColorRGBA* color_msg) {
+                                  ColorRGBAMsg* color_msg) {
   // TODO(helenol): figure out a nicer way to do this without hard-coded
   // constants.
   const double min_z = -1;
@@ -120,10 +121,10 @@ inline void heightColorFromVertex(const Point& vertex,
   colorVoxbloxToMsg(rainbowColorMap(mapped_height), color_msg);
 }
 
-inline std_msgs::ColorRGBA getVertexColor(const Mesh::ConstPtr& mesh,
+inline ColorRGBAMsg getVertexColor(const Mesh::ConstPtr& mesh,
                                           const ColorMode& color_mode,
                                           const size_t index) {
-  std_msgs::ColorRGBA color_msg;
+  ColorRGBAMsg color_msg;
   switch (color_mode) {
     case kColor:
       colorVoxbloxToMsg(mesh->colors[index], &color_msg);
@@ -150,11 +151,11 @@ inline std_msgs::ColorRGBA getVertexColor(const Mesh::ConstPtr& mesh,
 }
 
 inline void generateVoxbloxMeshMsg(MeshLayer* mesh_layer, ColorMode color_mode,
-                                   voxblox_msgs::Mesh* mesh_msg) {
+                                   MeshMsg* mesh_msg, NodeHandle nh) {
   CHECK_NOTNULL(mesh_msg);
   CHECK_NOTNULL(mesh_layer);
 
-  mesh_msg->header.stamp = ros::Time::now();
+  mesh_msg->header.stamp = timeNow(nh);
 
   BlockIndexList mesh_indices;
   mesh_layer->getAllUpdatedMeshes(&mesh_indices);
@@ -165,7 +166,7 @@ inline void generateVoxbloxMeshMsg(MeshLayer* mesh_layer, ColorMode color_mode,
   for (const BlockIndex& block_index : mesh_indices) {
     Mesh::Ptr mesh = mesh_layer->getMeshPtrByIndex(block_index);
 
-    voxblox_msgs::MeshBlock mesh_block;
+    MeshBlockMsg mesh_block;
     mesh_block.index[0] = block_index.x();
     mesh_block.index[1] = block_index.y();
     mesh_block.index[2] = block_index.z();
@@ -206,7 +207,7 @@ inline void generateVoxbloxMeshMsg(MeshLayer* mesh_layer, ColorMode color_mode,
                              normalized_verticies.z());
 
       if (color_mode != kNormals) {
-        const std_msgs::ColorRGBA color_msg =
+        const ColorRGBAMsg color_msg =
             getVertexColor(mesh, color_mode, i);
         mesh_block.r.push_back(std::numeric_limits<uint8_t>::max() *
                                color_msg.r);
@@ -230,17 +231,17 @@ inline void generateVoxbloxMeshMsg(MeshLayer* mesh_layer, ColorMode color_mode,
 
 inline void generateVoxbloxMeshMsg(const MeshLayer::Ptr& mesh_layer,
                                    ColorMode color_mode,
-                                   voxblox_msgs::Mesh* mesh_msg) {
+                                   MeshMsg* mesh_msg, NodeHandle nh) {
   CHECK_NOTNULL(mesh_msg);
   CHECK(mesh_layer);
-  generateVoxbloxMeshMsg(mesh_layer.get(), color_mode, mesh_msg);
+  generateVoxbloxMeshMsg(mesh_layer.get(), color_mode, mesh_msg, nh);
 }
 
 inline void fillMarkerWithMesh(const MeshLayer::ConstPtr& mesh_layer,
                                ColorMode color_mode,
-                               visualization_msgs::Marker* marker) {
+                               MarkerMsg* marker, NodeHandle nh) {
   CHECK_NOTNULL(marker);
-  marker->header.stamp = ros::Time::now();
+  marker->header.stamp = timeNow(nh);
   marker->ns = "mesh";
   marker->scale.x = 1;
   marker->scale.y = 1;
@@ -249,7 +250,7 @@ inline void fillMarkerWithMesh(const MeshLayer::ConstPtr& mesh_layer,
   marker->pose.orientation.y = 0;
   marker->pose.orientation.z = 0;
   marker->pose.orientation.w = 1;
-  marker->type = visualization_msgs::Marker::TRIANGLE_LIST;
+  marker->type = MarkerMsg::TRIANGLE_LIST;
 
   BlockIndexList mesh_indices;
   mesh_layer->getAllAllocatedMeshes(&mesh_indices);
@@ -270,8 +271,9 @@ inline void fillMarkerWithMesh(const MeshLayer::ConstPtr& mesh_layer,
     }
 
     for (size_t i = 0u; i < mesh->vertices.size(); i++) {
-      geometry_msgs::Point point_msg;
-      tf::pointEigenToMsg(mesh->vertices[i].cast<double>(), point_msg);
+      GeometryPointMsg point_msg;
+      // tf::pointEigenToMsg(mesh->vertices[i].cast<double>(), point_msg);
+      pointEigenToMsg(mesh->vertices[i].cast<double>(), point_msg);
       marker->points.push_back(point_msg);
       marker->colors.push_back(getVertexColor(mesh, color_mode, i));
     }

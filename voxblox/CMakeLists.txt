@@ -22,7 +22,7 @@ if(DEFINED ENV{ROS_VERSION} AND $ENV{ROS_VERSION} EQUAL 2)
   message(STATUS "Protobuf libraries: ${Protobuf_LIBRARIES}")
 
   set(CMAKE_MACOSX_RPATH 0)
-  add_definitions(-std=c++14 -Wall -Wextra)
+  add_definitions(-std=c++17 -Wall -Wextra)
 
   ############
   # PROTOBUF #
@@ -173,8 +173,11 @@ if(DEFINED ENV{ROS_VERSION} AND $ENV{ROS_VERSION} EQUAL 2)
   )
   
   # Install generated proto headers
+  # install(FILES ${PROTO_HDRS}
+  #   DESTINATION include/${PROJECT_NAME}/voxblox
+  # )
   install(FILES ${PROTO_HDRS}
-    DESTINATION include/${PROJECT_NAME}/voxblox
+    DESTINATION include/${PROJECT_NAME}
   )
 
   ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
@@ -188,7 +191,7 @@ else()
   catkin_simple(ALL_DEPS_REQUIRED)
 
   set(CMAKE_MACOSX_RPATH 0)
-  add_definitions(-std=c++14 -Wall -Wextra)
+  add_definitions(-std=c++17 -Wall -Wextra)
 
   #############
   # PROTOBUF #
