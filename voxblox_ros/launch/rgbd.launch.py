@@ -35,21 +35,22 @@ def generate_launch_description():
         parameters=[
             # config_file,  # Uncomment if you have a config file
             {
-                'tsdf_voxel_size': voxel_size,
+                'tsdf_voxel_size': 0.2,
                 'tsdf_voxels_per_side': 16,
                 'voxel_carving_enabled': True,
                 'color_mode': 'color',
-                'use_tf_transforms': False,
+                'use_tf_transforms': True,
                 'update_mesh_every_n_sec': 1.0,
                 'verbose': True,
                 'min_time_between_msgs_sec': 0.2,
                 'max_ray_length_m': 2.0,
-                # 'mesh_filename': '/tmp/voxblox_mesh.ply'  # Uncomment to save mesh
+                'world_frame': 'world',
+                'publish_pointclouds': True
+                # 'mesh_filename': '/home/arl/workspaces2/arl_autonomy_ws/voxblox_mesh.ply'  # Uncomment to save mesh
             }
         ],
         remappings=[
-            ('pointcloud', 'camera/depth/points'),
-            ('transform', 'camera_imu/vrpn_client/estimated_transform'),
+            ('pointcloud', '/camera/depth/points_fixed')
         ],
         arguments=['--ros-args', '--log-level', 'info']
     )

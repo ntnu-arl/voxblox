@@ -12,17 +12,8 @@
 
   <license>BSD</license>
 
-  <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
-  <buildtool_depend condition="$ROS_VERSION == 1">catkin_simple</buildtool_depend>
-  <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend condition="$ROS_VERSION == 1">cv_bridge</depend>
-  <depend condition="$ROS_VERSION == 1">gflags_catkin</depend>
-  <depend condition="$ROS_VERSION == 1">interactive_markers</depend>
-  <depend condition="$ROS_VERSION == 1">minkindr_conversions</depend>
-  <depend condition="$ROS_VERSION == 1">pcl_conversions</depend>
-  <depend condition="$ROS_VERSION == 1">pcl_ros</depend>
-  <depend condition="$ROS_VERSION == 1">tf</depend>
   <depend>sensor_msgs</depend>
   <depend>voxblox</depend>
   <depend>voxblox_msgs</depend>
@@ -31,14 +22,16 @@
   <depend>visualization_msgs</depend>
   <depend>std_srvs</depend>
   <depend>minkindr_conversions</depend>
+  <depend>gflags</depend>
+  <depend>rclcpp</depend>
+  <depend>cv_bridge</depend>
+  <depend>tf2_ros</depend>
+  <depend>pcl_conversions</depend>
+  <depend>image_transport</depend>
+  <depend>pcl_ros</depend>
+  <depend>tf2_eigen</depend>
 
-  <depend condition="$ROS_VERSION == 2">gflags</depend>
-  <depend condition="$ROS_VERSION == 2">rclcpp</depend>
-  <depend condition="$ROS_VERSION == 2">cv_bridge</depend>
-  <depend condition="$ROS_VERSION == 2">tf2_ros</depend>
-  <depend condition="$ROS_VERSION == 2">pcl_conversions</depend>
-  <depend condition="$ROS_VERSION == 2">image_transport</depend>
-  <depend condition="$ROS_VERSION == 2">pcl_ros</depend>
-  <depend condition="$ROS_VERSION == 2">tf2_eigen</depend>
-
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>

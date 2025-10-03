@@ -12,6 +12,30 @@
 
 namespace voxblox {
 
+// inline TsdfMap::Config getTsdfMapConfigFromRosParam(
+//     const NodeHandle& nh_private) {
+//   TsdfMap::Config tsdf_config;
+
+//   /**
+//    * Workaround for OS X on mac mini not having specializations for float
+//    * for some reason.
+//    */
+//   double voxel_size = tsdf_config.tsdf_voxel_size;
+//   int voxels_per_side = tsdf_config.tsdf_voxels_per_side;
+//   voxel_size = nh_private->declare_parameter("tsdf_voxel_size", voxel_size);
+//   voxels_per_side = nh_private->declare_parameter("tsdf_voxels_per_side", voxels_per_side);
+  
+//   if (!isPowerOfTwo(voxels_per_side)) {
+//     RCLCPP_ERROR(nh_private->get_logger(), 
+//                  "voxels_per_side must be a power of 2, setting to default value");
+//     voxels_per_side = tsdf_config.tsdf_voxels_per_side;
+//   }
+
+//   tsdf_config.tsdf_voxel_size = static_cast<FloatingPoint>(voxel_size);
+//   tsdf_config.tsdf_voxels_per_side = voxels_per_side;
+
+//   return tsdf_config;
+// }
 inline TsdfMap::Config getTsdfMapConfigFromRosParam(
     const NodeHandle& nh_private) {
   TsdfMap::Config tsdf_config;
@@ -22,8 +46,19 @@ inline TsdfMap::Config getTsdfMapConfigFromRosParam(
    */
   double voxel_size = tsdf_config.tsdf_voxel_size;
   int voxels_per_side = tsdf_config.tsdf_voxels_per_side;
-  voxel_size = nh_private->declare_parameter("tsdf_voxel_size", voxel_size);
-  voxels_per_side = nh_private->declare_parameter("tsdf_voxels_per_side", voxels_per_side);
+  
+  // Try to declare parameter, but if already declared, just get it
+  try {
+    voxel_size = nh_private->declare_parameter("tsdf_voxel_size", voxel_size);
+  } catch (const rclcpp::exceptions::ParameterAlreadyDeclaredException&) {
+    voxel_size = nh_private->get_parameter("tsdf_voxel_size").as_double();
+  }
+  
+  try {
+    voxels_per_side = nh_private->declare_parameter("tsdf_voxels_per_side", voxels_per_side);
+  } catch (const rclcpp::exceptions::ParameterAlreadyDeclaredException&) {
+    voxels_per_side = nh_private->get_parameter("tsdf_voxels_per_side").as_int();
+  }
   
   if (!isPowerOfTwo(voxels_per_side)) {
     RCLCPP_ERROR(nh_private->get_logger(), 
