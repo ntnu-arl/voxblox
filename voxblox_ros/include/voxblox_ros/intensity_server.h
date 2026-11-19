@@ -2,7 +2,7 @@
 #define VOXBLOX_ROS_INTENSITY_SERVER_H_
 
 #include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/Image.h>
+#include <sensor_msgs/msg/image.hpp>
 #include <memory>
 
 #include <voxblox/core/voxel.h>
@@ -24,7 +24,7 @@ class IntensityServer : public TsdfServer {
   virtual void updateMesh();
   virtual void publishPointclouds();
 
-  void intensityImageCallback(const sensor_msgs::ImageConstPtr& image);
+  void intensityImageCallback(const sensor_msgs::msg::ImageConstPtr& image);
 
  protected:
   /// Subscriber for intensity images.
