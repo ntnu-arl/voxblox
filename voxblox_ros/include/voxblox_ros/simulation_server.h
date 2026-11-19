@@ -1,7 +1,8 @@
 #ifndef VOXBLOX_ROS_SIMULATION_SERVER_H_
 #define VOXBLOX_ROS_SIMULATION_SERVER_H_
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
+#include <ros1_compat/ros1_compat.h>
 #include <memory>
 #include <string>
 
